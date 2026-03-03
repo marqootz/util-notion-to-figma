@@ -139,6 +139,7 @@ function NotionTableWidget() {
   const [tableSize, setTableSize] = useSyncedState<TableSize>("tableSize", "medium");
   const [columnOrder, setColumnOrder] = useSyncedState("columnOrder", "");
   const [hiddenColumns, setHiddenColumns] = useSyncedState("hiddenColumns", "");
+  const [showFooter, setShowFooter] = useSyncedState("showFooter", true);
 
   function buildSorts(): { property?: string; timestamp?: string; direction: "ascending" | "descending" }[] {
     if (!sortBy) return [];
@@ -288,7 +289,12 @@ function NotionTableWidget() {
       selectedOption: groupOptions.some((o) => o.option === groupBy) ? groupBy : "",
       options: groupOptions,
     },
-    { itemType: "separator" },
+    {
+      itemType: "toggle",
+      propertyName: "showFooter",
+      tooltip: "Show footer",
+      isToggled: showFooter,
+    },
   ];
   usePropertyMenu(menuItems, async ({ propertyName, propertyValue }) => {
     if (propertyName === "sync") await fetchFromNotion();
@@ -302,6 +308,7 @@ function NotionTableWidget() {
     }
     else if (propertyName === "sort") setSortBy(propertyValue ?? "");
     else if (propertyName === "group") setGroupBy(propertyValue ?? "");
+    else if (propertyName === "showFooter") setShowFooter((prev) => !prev);
   });
 
   // Load saved config from clientStorage when widget mounts (e.g. after configuring via Plugins → Development)
@@ -676,6 +683,7 @@ function NotionTableWidget() {
           })}
         </AutoLayout>
       ))}
+      {showFooter ? (
       <AutoLayout direction="vertical" padding={8} fill="#FAFAFA" spacing={6}>
         <AutoLayout direction="vertical" spacing={4}>
           <Text fontSize={9} fill="#666">
@@ -722,6 +730,7 @@ function NotionTableWidget() {
           {parseFilters().length > 0 ? ` · Showing ${getFilteredRows().length} of ${rows.length}` : ""}
         </Text>
       </AutoLayout>
+      ) : null}
     </AutoLayout>
   );
 }
